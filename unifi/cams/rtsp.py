@@ -6,6 +6,8 @@ from pathlib import Path
 
 from aiohttp import web
 
+from PIL import Image
+
 from unifi.cams.base import UnifiCamBase
 
 
@@ -55,7 +57,12 @@ class RTSPCam(UnifiCamBase):
     async def get_snapshot(self) -> Path:
         img_file = Path(self.snapshot_dir, "screen.jpg")
         if self.args.snapshot_url:
-            await self.fetch_to_file(self.args.snapshot_url, img_file)
+            img_file_fullres = Path(self.snapshot_dir, "screen_fullres.jpg")
+            if await self.fetch_to_file(self.args.snapshot_url, img_file_fullres):
+                size = 1920, 1080
+                with Image.open(img_file_fullres) as im:
+                    im.thumbnail(size)
+                    im.save(img_file, "JPEG")
         else:
             self.start_snapshot_stream()
         return img_file
