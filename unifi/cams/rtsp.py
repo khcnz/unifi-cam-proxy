@@ -58,11 +58,15 @@ class RTSPCam(UnifiCamBase):
         img_file = Path(self.snapshot_dir, "screen.jpg")
         if self.args.snapshot_url:
             img_file_fullres = Path(self.snapshot_dir, "screen_fullres.jpg")
+            self.logger.info(f"Downloading snapshot from {self.args.snapshot_url}")
             if await self.fetch_to_file(self.args.snapshot_url, img_file_fullres):
                 size = 1920, 1080
+                self.logger.info(f"Resizing image to {size}")
                 with Image.open(img_file_fullres) as im:
                     im.thumbnail(size)
                     im.save(img_file, "JPEG")
+            else:
+                 self.logger.info(f"Could not download screenshot")
         else:
             self.start_snapshot_stream()
         return img_file
